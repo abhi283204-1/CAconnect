@@ -8,7 +8,7 @@ export const siteConfig = {
   address: "WeWork, Connaught Place, New Delhi - 110001, India",
   mapUrl:
     "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3501.6743895635614!2d77.21707431508!3d28.63299998241!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cfd37b741d057%3A0xcdee88e47393c3f1!2sConnaught+Place!5e0!3m2!1sen!2sin!4v1",
-  whatsapp: "+919876543210",
+  whatsapp: "+918800752884",
   officeHours: "Mon - Sat: 9:00 AM - 8:00 PM",
   social: {
     linkedin: "https://linkedin.com/company/caconnect",
