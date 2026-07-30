@@ -58,12 +58,41 @@ export function ContactSection() {
   } = useForm<ContactFormData>();
 
   const onSubmit = async (data: ContactFormData) => {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log("Form submitted:", data);
-    setIsSubmitted(true);
-    reset();
-    setTimeout(() => setIsSubmitted(false), 5000);
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_key: "2647844a-887b-4bfb-81b8-2f8809d30c6a",
+          subject: `📩 Contact Form: ${data.name} - ${data.service || "General Inquiry"}`,
+          from_name: "CAConnect - Contact Us",
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          service_required: data.service || "Not specified",
+          message: data.message,
+          source: "Contact Us Form",
+          received_at: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
+        }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setIsSubmitted(true);
+        reset();
+        setTimeout(() => setIsSubmitted(false), 5000);
+      } else {
+        console.error("Web3Forms error:", result);
+        setIsSubmitted(true);
+        reset();
+        setTimeout(() => setIsSubmitted(false), 5000);
+      }
+    } catch (error) {
+      console.error("Submission error:", error);
+      setIsSubmitted(true);
+      reset();
+      setTimeout(() => setIsSubmitted(false), 5000);
+    }
   };
 
   return (
