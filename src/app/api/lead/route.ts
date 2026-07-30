@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// WhatsApp Business API Configuration
-// You'll need to set these environment variables:
-// WHATSAPP_API_TOKEN - Your WhatsApp Business API access token
-// WHATSAPP_PHONE_NUMBER_ID - Your WhatsApp Business phone number ID
-const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN || "";
-const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID || "";
-const NOTIFY_PHONE = "918800752884"; // WhatsApp number to receive lead alerts
+// Web3Forms Configuration
+// Get your free access key from https://web3forms.com/
+// It will send form submissions directly to your Gmail
+const WEB3FORMS_ACCESS_KEY = process.env.WEB3FORMS_ACCESS_KEY || "";
 
 interface LeadData {
   name: string;
@@ -22,56 +19,39 @@ interface LeadData {
   source?: string;
 }
 
-async function sendWhatsAppMessage(lead: LeadData) {
-  const messageBody = `🔔 *New Lead Received!*
+async function sendEmailNotification(lead: LeadData) {
+  const response = await fetch("https://api.web3forms.com/submit", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      access_key: WEB3FORMS_ACCESS_KEY,
+      subject: `🔔 New Lead: ${lead.name} - ${lead.source || "Website"}`,
+      from_name: "CAConnect Leads",
+      name: lead.name,
+      email: lead.email,
+      phone: lead.phone,
+      user_type: lead.userType || "N/A",
+      service_required: lead.service || "N/A",
+      city: lead.city || "N/A",
+      business_type: lead.businessType || "N/A",
+      company_name: lead.companyName || "N/A",
+      preferred_time: lead.preferredTime || "N/A",
+      message: lead.message || "N/A",
+      source: lead.source || "Website",
+      received_at: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
+    }),
+  });
 
-👤 *Name:* ${lead.name}
-📞 *Phone:* ${lead.phone}
-📧 *Email:* ${lead.email}
-${lead.userType ? `🏷️ *Type:* ${lead.userType}` : ""}
-${lead.service ? `📋 *Service:* ${lead.service}` : ""}
-${lead.city ? `📍 *City:* ${lead.city}` : ""}
-${lead.businessType ? `🏢 *Business:* ${lead.businessType}` : ""}
-${lead.companyName ? `🏛️ *Company:* ${lead.companyName}` : ""}
-${lead.preferredTime ? `🕐 *Preferred Time:* ${lead.preferredTime}` : ""}
-${lead.source ? `📌 *Source:* ${lead.source}` : ""}
+  const result = await response.json();
 
-⏰ *Received:* ${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}`;
-
-  // If WhatsApp Business API is configured, use it
-  if (WHATSAPP_API_TOKEN && WHATSAPP_PHONE_NUMBER_ID) {
-    const response = await fetch(
-      `https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${WHATSAPP_API_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messaging_product: "whatsapp",
-          to: NOTIFY_PHONE,
-          type: "text",
-          text: { body: messageBody },
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
-      console.error("WhatsApp API error:", error);
-      throw new Error("Failed to send WhatsApp message");
-    }
-
-    return await response.json();
+  if (!result.success) {
+    console.error("Web3Forms error:", result);
+    throw new Error("Failed to send email notification");
   }
 
-  // Fallback: Log the lead if WhatsApp API is not configured
-  console.log("=== NEW LEAD (WhatsApp API not configured) ===");
-  console.log(messageBody);
-  console.log("================================================");
-
-  return { status: "logged", message: "WhatsApp API not configured, lead logged to console" };
+  return result;
 }
 
 export async function POST(request: NextRequest) {
@@ -86,11 +66,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Send WhatsApp notification
-    const result = await sendWhatsAppMessage(lead);
+    // Send email notification via Web3Forms
+    if (WEB3FORMS_ACCESS_KEY) {
+      const result = await sendEmailNotification(lead);
+      return NextResponse.json(
+        { success: true, message: "Lead received successfully", result },
+        { status: 200 }
+      );
+    }
+
+    // Fallback: Log if not configured
+    console.log("=== NEW LEAD (Web3Forms not configured) ===");
+    console.log(JSON.stringify(lead, null, 2));
+    console.log("=============================================");
 
     return NextResponse.json(
-      { success: true, message: "Lead received successfully", result },
+      { success: true, message: "Lead logged (email not configured)" },
       { status: 200 }
     );
   } catch (error) {
