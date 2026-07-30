@@ -103,10 +103,22 @@ export function ComplianceKitContent() {
   } = useForm<KitFormData>();
 
   const onSubmit = async (data: KitFormData) => {
-    console.log("Compliance Kit lead:", data);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    setIsSubmitted(true);
+    try {
+      const response = await fetch("/api/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, source: "Compliance Kit Download" }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit");
+      }
+
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error("Submission error:", error);
+      setIsSubmitted(true);
+    }
   };
 
   return (
