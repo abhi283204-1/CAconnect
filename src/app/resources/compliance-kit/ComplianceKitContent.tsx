@@ -104,17 +104,30 @@ export function ComplianceKitContent() {
 
   const onSubmit = async (data: KitFormData) => {
     try {
-      const response = await fetch("/api/lead", {
+      const response = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, source: "Compliance Kit Download" }),
+        body: JSON.stringify({
+          access_key: "2647844a-887b-4bfb-81b8-2f8809d30c6a",
+          subject: `🔔 New Lead: ${data.name} - Compliance Kit Download`,
+          from_name: "CAConnect Leads",
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          business_type: data.businessType || "N/A",
+          company_name: data.companyName || "N/A",
+          source: "Compliance Kit Download",
+          received_at: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to submit");
+      const result = await response.json();
+      if (result.success) {
+        setIsSubmitted(true);
+      } else {
+        console.error("Web3Forms error:", result);
+        setIsSubmitted(true);
       }
-
-      setIsSubmitted(true);
     } catch (error) {
       console.error("Submission error:", error);
       setIsSubmitted(true);

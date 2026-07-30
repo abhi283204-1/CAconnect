@@ -57,20 +57,35 @@ export function LeadFormSection() {
 
   const onSubmit = async (data: LeadFormData) => {
     try {
-      const response = await fetch("/api/lead", {
+      const response = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, source: "Consultation Form" }),
+        body: JSON.stringify({
+          access_key: "2647844a-887b-4bfb-81b8-2f8809d30c6a",
+          subject: `🔔 New Lead: ${data.name} - Consultation Form`,
+          from_name: "CAConnect Leads",
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          user_type: data.userType || "N/A",
+          service_required: data.service || "N/A",
+          city: data.city || "N/A",
+          preferred_time: data.preferredTime || "N/A",
+          message: data.message || "N/A",
+          source: "Consultation Form",
+          received_at: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to submit");
+      const result = await response.json();
+      if (result.success) {
+        setIsSubmitted(true);
+      } else {
+        console.error("Web3Forms error:", result);
+        setIsSubmitted(true);
       }
-
-      setIsSubmitted(true);
     } catch (error) {
       console.error("Submission error:", error);
-      // Still show success to user, lead will be retried
       setIsSubmitted(true);
     }
   };
